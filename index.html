@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Private XML Product Viewer - Upload and View XML Files Securely and Privately Online. No Server Uploads.">
+    <meta name="keywords" content="XML Viewer, Private XML, Client-side XML Viewer, Secure XML Viewing">
+    <meta name="author" content="darvydas">
+    <title>Private XML Product Viewer | Secure Online XML Reader</title>
+
+    <!-- Open Graph / SEO for Social -->
+    <meta property="og:title" content="Private XML Product Viewer | Secure Online XML Reader">
+    <meta property="og:description" content="Upload and view XML files privately in your browser. 100% client-side, no uploads.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://darvydas.github.io/private-xml-product-viewer/">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .uploader {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .viewer {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 70vh;
+        }
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #777;
+        }
+        .url-loader {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        input[type='text'] {
+            width: 80%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Private XML Viewer</h1>
+    <div class="uploader">
+        <input type="file" id="xmlFile" accept=".xml" />
+    </div>
+    <div class="url-loader">
+        <input type="text" id="xmlUrl" placeholder="Paste XML file URL here..." />
+        <br>
+        <button onclick="loadFromUrl()">Load from URL</button>
+    </div>
+    <div id="output" class="viewer">
+        <p>Select an XML file or paste a URL to view its content here privately.</p>
+    </div>
+
+    <footer>
+        &copy; 2025 darvydas | 100% client-side. No data leaves your browser.
+    </footer>
+
+    <script>
+        document.getElementById('xmlFile').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                parseAndDisplayXml(e.target.result);
+            };
+            reader.readAsText(file);
+        });
+
+        function loadFromUrl() {
+            const url = document.getElementById('xmlUrl').value;
+            if (!url) return;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(data => {
+                    parseAndDisplayXml(data);
+                })
+                .catch(error => {
+                    document.getElementById('output').textContent = 'Error fetching XML: ' + error.message;
+                });
+        }
+
+        function parseAndDisplayXml(xmlString) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, "application/xml");
+            const serializer = new XMLSerializer();
+            const prettyXML = formatXml(serializer.serializeToString(xmlDoc));
+            document.getElementById('output').textContent = prettyXML;
+        }
+
+        function formatXml(xml) {
+            const PADDING = '  '; // set desired indent size
+            const reg = /(>)(<)(\/*)/g;
+            let pad = 0;
+            let formatted = '';
+            xml = xml.replace(reg, '$1\r\n$2$3');
+            xml.split('\r\n').forEach((node) => {
+                let indent = 0;
+                if (node.match(/.+<\/\w[^>]*>$/)) {
+                    indent = 0;
+                } else if (node.match(/^<\/\w/)) {
+                    if (pad !== 0) pad -= 1;
+                } else if (node.match(/^<\w([^>]*[^\/])?>.*$/)) {
+                    indent = 1;
+                } else {
+                    indent = 0;
+                }
+
+                formatted += PADDING.repeat(pad) + node + '\r\n';
+                pad += indent;
+            });
+            return formatted;
+        }
+    </script>
+
+    <noscript>
+        <div style="text-align:center;color:red;font-weight:bold;">JavaScript is required to use the Private XML Viewer.</div>
+    </noscript>
+</body>
+</html>
