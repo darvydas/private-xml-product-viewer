@@ -1,148 +1,1338 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Private XML Product Viewer - Upload and View XML Files Securely and Privately Online. No Server Uploads.">
-    <meta name="keywords" content="XML Viewer, Private XML, Client-side XML Viewer, Secure XML Viewing">
-    <meta name="author" content="darvydas">
-    <title>Private XML Product Viewer | Secure Online XML Reader</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="XML Product Viewer - Upload, View, and Analyze E-commerce XML Product Files."
+    />
+    <meta
+      name="keywords"
+      content="XML Viewer, XML Tree View, XML Table View, Search XML, E-commerce XML Viewer, Online XML Viewing"
+    />
+    <meta name="author" content="darvydas" />
+    <title>XML Product Viewer | Tree, Table, Search</title>
 
     <!-- Open Graph / SEO for Social -->
-    <meta property="og:title" content="Private XML Product Viewer | Secure Online XML Reader">
-    <meta property="og:description" content="Upload and view XML files privately in your browser. 100% client-side, no uploads.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://darvydas.github.io/private-xml-product-viewer/">
+    <meta
+      property="og:title"
+      content="XML Product Viewer | Tree, Table, Search"
+    />
+    <meta
+      property="og:description"
+      content="Upload/paste URL to view XML as raw text, collapsible tree, or table. Includes search."
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://darvydas.github.io/private-xml-product-viewer/"
+    />
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 2rem;
-            background: #f9f9f9;
-            color: #333;
+      /* --- Existing Styles --- */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 2rem;
+        background: #f9f9f9;
+        color: #333;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      .input-container {
+        text-align: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+      .uploader,
+      .url-loader {
+        margin-bottom: 1rem; /* Space below input */
+      }
+      input[type='text'] {
+        width: calc(80% - 2rem); /* Adjust width considering padding */
+        padding: 0.75rem; /* Slightly larger padding */
+        margin-bottom: 0.5rem; /* Reduced margin */
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      input[type='search'] {
+        /* Style search input */
+        padding: 0.5rem;
+        margin-right: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      input[type='file'] {
+        padding: 0.5rem; /* Add some padding */
+      }
+      button {
+        padding: 0.6rem 1.2rem; /* Slightly larger buttons */
+        font-size: 1rem;
+        cursor: pointer;
+        border: none;
+        border-radius: 4px;
+        background-color: #007bff;
+        color: white;
+        margin-top: 0.5rem; /* Add margin top */
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      .toggle-button {
+        background-color: #6c757d;
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+      }
+      .toggle-button:hover {
+        background-color: #5a6268;
+      }
+      .hidden {
+        display: none; /* Class to hide elements */
+      }
+      footer {
+        margin-top: 2rem;
+        text-align: center;
+        font-size: 0.8rem;
+        color: #777;
+      }
+
+      /* --- New Styles --- */
+      .output-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-top: 1rem;
+      }
+
+      .view-controls {
+        padding: 0.5rem 1rem;
+        background-color: #eee;
+        border-bottom: 1px solid #ddd;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        display: flex;
+        justify-content: space-between; /* Pushes search to the right */
+        align-items: center;
+        flex-wrap: wrap; /* Allow wrapping on small screens */
+      }
+
+      .view-tabs button {
+        background-color: #f8f9fa;
+        color: #007bff;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+        padding: 0.5rem 1rem;
+        margin: 0 0.1rem -1px 0; /* Overlap border */
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+
+      .view-tabs button.active {
+        background-color: white;
+        border-color: #dee2e6 #dee2e6 white; /* Make bottom border disappear */
+        font-weight: bold;
+      }
+      .view-tabs button:hover:not(.active) {
+        background-color: #e9ecef;
+      }
+
+      .search-container {
+        padding: 5px 0; /* Add some padding */
+      }
+      #searchResultCount {
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+        color: #555;
+      }
+
+      .viewer {
+        padding: 1rem;
+        white-space: pre-wrap;
+        overflow: auto; /* Changed from overflow-x to auto for vertical scroll too */
+        max-height: 65vh;
+        min-height: 100px;
+        font-family: monospace; /* Good for raw XML */
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      /* Tree View Styles */
+      .tree-viewer ul {
+        list-style-type: none;
+        padding-left: 20px;
+        margin: 0;
+      }
+      .tree-viewer li {
+        position: relative;
+        padding-left: 15px; /* Space for toggle */
+        margin-bottom: 3px;
+      }
+      .tree-viewer .toggle {
+        position: absolute;
+        left: 0;
+        top: 1px;
+        cursor: pointer;
+        font-size: 0.8em;
+        user-select: none; /* Prevent text selection on click */
+        width: 12px; /* Ensure space */
+        text-align: center;
+      }
+      .tree-viewer .toggle::before {
+        content: '▶'; /* Collapsed */
+        display: inline-block;
+      }
+      .tree-viewer li.expanded > .toggle::before {
+        content: '▼'; /* Expanded */
+      }
+      .tree-viewer li.leaf > .toggle {
+        /* No toggle for leaf nodes */
+        visibility: hidden;
+      }
+      .tree-viewer ul.collapsed {
+        display: none;
+      }
+      .tree-viewer .node-content {
+        font-family: Arial, sans-serif; /* Switch back for tree */
+        font-size: 0.95rem;
+      }
+      .tree-viewer .element-name {
+        color: #990055; /* Purple */
+        font-weight: bold;
+      }
+      .tree-viewer .attribute-name {
+        color: #669900; /* Green */
+      }
+      .tree-viewer .attribute-value {
+        color: #007bff; /* Blue */
+      }
+      .tree-viewer .text-content {
+        color: #333;
+        white-space: normal; /* Allow text wrapping */
+        display: inline-block; /* Or block */
+        margin-left: 5px;
+        background-color: #f0f0f0;
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-style: italic;
+      }
+      .tree-viewer .attributes {
+        margin-left: 10px;
+        font-size: 0.9em;
+      }
+
+      /* Table View Styles */
+      .table-viewer {
+        font-family: Arial, sans-serif;
+        font-size: 0.9rem;
+        overflow: auto; /* Add scrollbars if table is too wide */
+        max-height: 65vh; /* Match other viewers */
+      }
+      .table-viewer table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+      .table-viewer th,
+      .table-viewer td {
+        border: 1px solid #ddd;
+        padding: 6px 8px;
+        text-align: left;
+        vertical-align: top;
+        white-space: normal; /* Allow wrapping in table cells */
+      }
+      .table-viewer th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+        position: sticky; /* Make headers sticky */
+        top: 0; /* Stick to the top of the .table-viewer container */
+        z-index: 1; /* Ensure header is above scrolling content */
+      }
+      .table-viewer tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      .table-viewer .no-table-data {
+        color: #777;
+        padding: 20px;
+        text-align: center;
+      }
+      /* Style for CSV download area */
+      #csvDownloadContainer {
+        text-align: center;
+        padding: 15px 10px 10px 10px; /* More padding top */
+        border-top: 1px solid #eee; /* Separator line */
+      }
+      #csvDownloadContainer button {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        background-color: #28a745; /* Green */
+      }
+      #csvDownloadContainer button:hover {
+        background-color: #218838;
+      }
+
+      /* Search Highlight Style */
+      mark {
+        background-color: yellow;
+        color: black;
+        padding: 0; /* Avoid changing layout */
+        border-radius: 2px;
+      }
+
+      /* Spinner Styles (Keep As Is) */
+      .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-left-color: #007bff;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
-        h1 {
-            text-align: center;
-            margin-bottom: 1rem;
+        100% {
+          transform: rotate(360deg);
         }
-        .uploader {
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-        .viewer {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            white-space: pre-wrap;
-            overflow-x: auto;
-            max-height: 70vh;
-        }
-        footer {
-            margin-top: 2rem;
-            text-align: center;
-            font-size: 0.8rem;
-            color: #777;
-        }
-        .url-loader {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        input[type='text'] {
-            width: 80%;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        button {
-            padding: 0.5rem 1rem;
-            font-size: 1rem;
-            cursor: pointer;
-        }
+      }
+      #output.loading {
+        /* This might not be used anymore, check JS */
+        text-align: center;
+      }
     </style>
-</head>
-<body>
-    <h1>Private XML Viewer</h1>
-    <div class="uploader">
-        <input type="file" id="xmlFile" accept=".xml" />
+  </head>
+  <body>
+    <!-- Input Section (Keep As Is) -->
+    <h1>XML Product Viewer</h1>
+    <div class="input-container">
+      <!-- File Uploader Section -->
+      <div id="fileUploaderSection">
+        <p>Upload an XML file from your device:</p>
+        <div class="uploader">
+          <input type="file" id="xmlFile" accept=".xml" />
+        </div>
+        <button id="switchToUrlBtn" class="toggle-button">
+          Or Load from URL
+        </button>
+      </div>
+      <!-- URL Loader Section (Initially Hidden) -->
+      <div id="urlLoaderSection" class="hidden">
+        <p>Enter the URL of an XML file:</p>
+        <div class="url-loader">
+          <input
+            type="text"
+            id="xmlUrl"
+            placeholder="Paste XML file URL here..."
+          />
+          <br />
+          <button onclick="loadFromUrl()">Load from URL</button>
+        </div>
+        <button id="switchToFileBtn" class="toggle-button">
+          Or Upload File
+        </button>
+      </div>
     </div>
-    <div class="url-loader">
-        <input type="text" id="xmlUrl" placeholder="Paste XML file URL here..." />
-        <br>
-        <button onclick="loadFromUrl()">Load from URL</button>
-    </div>
-    <div id="output" class="viewer">
-        <p>Select an XML file or paste a URL to view its content here privately.</p>
+
+    <!-- Output Section -->
+    <div id="outputContainer" class="output-container hidden">
+      <!-- Hide initially -->
+      <div class="view-controls">
+        <div class="view-tabs">
+          <!-- *** CHANGED ORDER: Table first *** -->
+          <button id="tabTable" data-view="tableOutput">Table View</button>
+          <button id="tabTree" data-view="treeOutput">Tree View</button>
+          <button id="tabRaw" data-view="rawOutput">Raw XML</button>
+        </div>
+        <div class="search-container">
+          <input
+            type="search"
+            id="searchInput"
+            placeholder="Search current view..."
+          />
+          <span id="searchResultCount"></span>
+        </div>
+      </div>
+
+      <div id="loadingSpinnerContainer" class="viewer hidden">
+        <!-- Specific container for spinner -->
+        <div id="loadingSpinner" class="spinner"></div>
+        <p id="loadingText"></p>
+      </div>
+
+      <div id="errorContainer" class="viewer hidden" style="color: red">
+        <!-- Error messages will be placed here -->
+      </div>
+
+      <div id="initialMessageContainer" class="viewer">
+        <p>Select an XML file or provide a URL to view its content here.</p>
+        <p>
+          * NOTE: Files processed locally. URLs fetched via proxy (URL sent to
+          server).
+        </p>
+      </div>
+
+      <!-- View Panes -->
+      <div id="tableOutput" class="viewer table-viewer hidden">
+        <!-- Generated table will go here -->
+        <!-- *** ADDED CSV Download Container *** -->
+        <div id="csvDownloadContainer" class="hidden">
+          <button id="downloadCsvBtn">Download Table as CSV</button>
+        </div>
+      </div>
+      <div id="treeOutput" class="viewer tree-viewer hidden">
+        <!-- Collapsible tree will go here -->
+      </div>
+      <div id="rawOutput" class="viewer hidden">
+        <!-- Raw formatted XML will go here -->
+      </div>
     </div>
 
     <footer>
-        &copy; 2025 darvydas | 100% client-side. No data leaves your browser.
+      <!-- Updated footer text -->
+      &copy; 2025 darvydas | Files processed locally. URLs fetched via proxy
+      (URL sent to server).
     </footer>
 
     <script>
-        document.getElementById('xmlFile').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+      // --- DOM References ---
+      const fileUploaderSection = document.getElementById('fileUploaderSection')
+      const urlLoaderSection = document.getElementById('urlLoaderSection')
+      const switchToUrlBtn = document.getElementById('switchToUrlBtn')
+      const switchToFileBtn = document.getElementById('switchToFileBtn')
+      const xmlFileInput = document.getElementById('xmlFile')
+      const xmlUrlInput = document.getElementById('xmlUrl')
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                parseAndDisplayXml(e.target.result);
-            };
-            reader.readAsText(file);
-        });
+      const outputContainer = document.getElementById('outputContainer')
+      const viewTabs = document.querySelector('.view-tabs')
+      const searchInput = document.getElementById('searchInput')
+      const searchResultCount = document.getElementById('searchResultCount')
 
-        function loadFromUrl() {
-            const url = document.getElementById('xmlUrl').value;
-            if (!url) return;
+      const loadingSpinnerContainer = document.getElementById(
+        'loadingSpinnerContainer'
+      )
+      const loadingSpinner = document.getElementById('loadingSpinner')
+      const loadingText = document.getElementById('loadingText')
+      const errorContainer = document.getElementById('errorContainer')
+      const initialMessageContainer = document.getElementById(
+        'initialMessageContainer'
+      )
 
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.text();
-                })
-                .then(data => {
-                    parseAndDisplayXml(data);
-                })
-                .catch(error => {
-                    document.getElementById('output').textContent = 'Error fetching XML: ' + error.message;
-                });
+      const rawOutput = document.getElementById('rawOutput')
+      const treeOutput = document.getElementById('treeOutput')
+      const tableOutput = document.getElementById('tableOutput')
+      // *** ADDED Reference for CSV container/button ***
+      const csvDownloadContainer = document.getElementById(
+        'csvDownloadContainer'
+      )
+      const downloadCsvBtn = document.getElementById('downloadCsvBtn')
+
+      // --- State Variables ---
+      let currentXmlDoc = null // Holds the parsed XML Document object
+      // *** CHANGED Default View ID ***
+      let currentView = 'tableOutput' // ID of the currently active view pane
+      let rawXmlRendered = false
+      let treeRendered = false
+      let tableRendered = false
+
+      // --- Utility Functions ---
+
+      // Simple debounce function
+      function debounce(func, wait) {
+        let timeout
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout)
+            func(...args)
+          }
+          clearTimeout(timeout)
+          timeout = setTimeout(later, wait)
         }
+      }
 
-        function parseAndDisplayXml(xmlString) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlString, "application/xml");
-            const serializer = new XMLSerializer();
-            const prettyXML = formatXml(serializer.serializeToString(xmlDoc));
-            document.getElementById('output').textContent = prettyXML;
+      // Function to show/hide loading state
+      function showLoading(message = 'Loading...') {
+        hideAllPanes()
+        loadingText.textContent = message
+        loadingSpinnerContainer.classList.remove('hidden')
+        outputContainer.classList.remove('hidden') // Make sure main container is visible
+      }
+
+      // Function to show error state
+      function showError(message) {
+        hideAllPanes()
+        errorContainer.textContent = message
+        errorContainer.classList.remove('hidden')
+        outputContainer.classList.remove('hidden')
+        currentXmlDoc = null // Reset doc on error
+        resetRenderFlags()
+        disableOtherTabs(true) // Disable tabs on error
+        searchInput.disabled = true
+      }
+
+      // Function to hide all main content panes
+      function hideAllPanes() {
+        loadingSpinnerContainer.classList.add('hidden')
+        errorContainer.classList.add('hidden')
+        initialMessageContainer.classList.add('hidden')
+        rawOutput.classList.add('hidden')
+        treeOutput.classList.add('hidden')
+        tableOutput.classList.add('hidden')
+        // *** ADDED Hide CSV button ***
+        csvDownloadContainer.classList.add('hidden')
+      }
+
+      // Function to reset render flags
+      function resetRenderFlags() {
+        rawXmlRendered = false
+        treeRendered = false
+        tableRendered = false
+      }
+
+      // --- Event Listeners ---
+
+      // Input Type Toggling
+      switchToUrlBtn.addEventListener('click', () => {
+        fileUploaderSection.classList.add('hidden')
+        urlLoaderSection.classList.remove('hidden')
+      })
+      switchToFileBtn.addEventListener('click', () => {
+        urlLoaderSection.classList.add('hidden')
+        fileUploaderSection.classList.remove('hidden')
+      })
+
+      // File Input
+      xmlFileInput.addEventListener('change', function (event) {
+        const file = event.target.files[0]
+        if (!file) return
+        showLoading('Reading file...')
+        resetRenderFlags() // Reset views for new file
+
+        const reader = new FileReader()
+        reader.onload = function (e) {
+          try {
+            processXmlString(e.target.result)
+          } catch (error) {
+            showError('Error parsing XML from file: ' + error.message)
+            console.error('File Parsing Error:', error)
+          }
         }
+        reader.onerror = function () {
+          showError('Error reading file.')
+          console.error('File Reading Error:', reader.error)
+        }
+        reader.readAsText(file)
+      })
 
-        function formatXml(xml) {
-            const PADDING = '  '; // set desired indent size
-            const reg = /(>)(<)(\/*)/g;
-            let pad = 0;
-            let formatted = '';
-            xml = xml.replace(reg, '$1\r\n$2$3');
-            xml.split('\r\n').forEach((node) => {
-                let indent = 0;
-                if (node.match(/.+<\/\w[^>]*>$/)) {
-                    indent = 0;
-                } else if (node.match(/^<\/\w/)) {
-                    if (pad !== 0) pad -= 1;
-                } else if (node.match(/^<\w([^>]*[^\/])?>.*$/)) {
-                    indent = 1;
-                } else {
-                    indent = 0;
+      // View Tab Switching
+      viewTabs.addEventListener('click', (event) => {
+        if (event.target.tagName === 'BUTTON') {
+          const viewId = event.target.getAttribute('data-view')
+          if (viewId && currentXmlDoc) {
+            // Only switch if XML is loaded
+            switchView(viewId)
+          } else if (!currentXmlDoc) {
+            // Don't show error if already showing error/loading/initial
+            if (
+              !errorContainer.classList.contains('hidden') ||
+              !loadingSpinnerContainer.classList.contains('hidden') ||
+              !initialMessageContainer.classList.contains('hidden')
+            ) {
+              // Do nothing
+            } else {
+              showError('Please load an XML file or URL first.')
+            }
+          }
+        }
+      })
+
+      // Search Input (debounced)
+      searchInput.addEventListener('input', debounce(performSearch, 300))
+
+      // *** ADDED CSV Download Button Listener ***
+      downloadCsvBtn.addEventListener('click', downloadTableAsCsv)
+
+      // --- Core Logic ---
+
+      // Load from URL (using proxy)
+      function loadFromUrl() {
+        const targetUrl = xmlUrlInput.value.trim()
+        if (!targetUrl) {
+          showError('Please enter a valid URL.')
+          return
+        }
+        const proxyUrl = 'https://zaislu.pirklys.lt/proxy.php' // Your proxy URL
+        const fetchUrl = `${proxyUrl}?url=${encodeURIComponent(targetUrl)}`
+
+        showLoading('Fetching XML via proxy...')
+        resetRenderFlags() // Reset views for new URL
+
+        fetch(fetchUrl)
+          .then((response) => {
+            if (!response.ok) {
+              return response.text().then((text) => {
+                let errorDetail = `Proxy error! Status: ${response.status} - ${response.statusText}.`
+                if (text && text.length < 500 && !text.trim().startsWith('<')) {
+                  errorDetail += ` Response: ${text}`
+                } else if (text) {
+                  errorDetail += ` (Proxy returned non-plain text response)`
                 }
+                throw new Error(errorDetail)
+              })
+            }
+            return response.text()
+          })
+          .then((data) => {
+            processXmlString(data)
+          })
+          .catch((error) => {
+            showError('Error during proxy request: ' + error.message)
+            console.error('Proxy Fetch Error:', error)
+          })
+      }
 
-                formatted += PADDING.repeat(pad) + node + '\r\n';
-                pad += indent;
-            });
-            return formatted;
+      // Process the raw XML string (from file or fetch)
+      function processXmlString(xmlString) {
+        try {
+          const parser = new DOMParser()
+          const xmlDoc = parser.parseFromString(xmlString, 'application/xml')
+          const parserError = xmlDoc.querySelector('parsererror')
+
+          if (parserError) {
+            console.error('Parser Error:', parserError.textContent)
+            // Display raw string but indicate error
+            currentXmlDoc = null // Can't process further
+            resetRenderFlags()
+            showError('Failed to parse XML. Displaying raw content below.')
+            // Still attempt to show raw formatted view
+            rawOutput.textContent = formatXml(xmlString)
+            rawOutput.classList.remove('hidden')
+            outputContainer.classList.remove('hidden')
+            // Activate Raw tab visually, disable others
+            setActiveTab('tabRaw') // Show raw tab even on parse error
+            disableOtherTabs(true)
+            return
+          }
+
+          currentXmlDoc = xmlDoc // Store the parsed document
+          console.log('XML Parsed Successfully:', currentXmlDoc)
+
+          // Successfully parsed, enable tabs and switch to default view
+          disableOtherTabs(false)
+          // *** CHANGED Default View ***
+          switchView('tableOutput') // Start with Table view
+        } catch (error) {
+          showError('Error processing XML: ' + error.message)
+          console.error('XML Processing Error:', error)
         }
+      }
+
+      // Switch Active View Pane
+      function switchView(viewId) {
+        if (
+          !currentXmlDoc &&
+          viewId !== 'errorContainer' &&
+          viewId !== 'loadingSpinnerContainer' &&
+          viewId !== 'initialMessageContainer'
+        ) {
+          console.warn('Attempted to switch view with no XML loaded.')
+          return
+        }
+
+        hideAllPanes() // Hides all including CSV button
+        currentView = viewId // Update current view state
+
+        // Activate the correct tab button
+        setActiveTab(`tab${viewId.replace('Output', '')}`)
+
+        // Render content if not already rendered
+        const viewElement = document.getElementById(viewId)
+        if (viewElement) {
+          viewElement.classList.remove('hidden') // Show the selected pane
+
+          switch (viewId) {
+            case 'rawOutput':
+              if (!rawXmlRendered) renderRawXml()
+              break
+            case 'treeOutput':
+              if (!treeRendered) renderTreeView()
+              break
+            case 'tableOutput':
+              if (!tableRendered) renderTableView()
+              // Show CSV button only if table rendered successfully (logic inside renderTableView)
+              break
+          }
+          // Re-apply search if there's a term
+          if (searchInput.value) {
+            performSearch() // This will also handle scrolling
+          } else {
+            clearHighlights() // Ensure no highlights if search is empty
+            searchResultCount.textContent = ''
+          }
+        } else {
+          console.error('View element not found:', viewId)
+          showError('Internal error: Could not find the requested view.')
+        }
+        outputContainer.classList.remove('hidden') // Ensure main container is visible
+      }
+
+      function setActiveTab(activeTabId) {
+        viewTabs.querySelectorAll('button').forEach((button) => {
+          if (button.id === activeTabId) {
+            button.classList.add('active')
+          } else {
+            button.classList.remove('active')
+          }
+        })
+      }
+
+      function disableOtherTabs(disabled) {
+        viewTabs.querySelectorAll('button').forEach((button) => {
+          // Allow switching even if parsing failed, but rendering might show error
+          button.disabled = disabled
+        })
+        searchInput.disabled = disabled // Disable search if parsing failed
+      }
+
+      // --- Rendering Functions ---
+
+      function renderRawXml() {
+        if (!currentXmlDoc) return
+        try {
+          const serializer = new XMLSerializer()
+          const xmlString = serializer.serializeToString(currentXmlDoc)
+          rawOutput.textContent = formatXml(xmlString)
+          rawXmlRendered = true
+        } catch (e) {
+          console.error('Error rendering raw XML:', e)
+          rawOutput.textContent = 'Error displaying raw XML.'
+          rawXmlRendered = false // Mark as not rendered successfully
+        }
+      }
+
+      function renderTreeView() {
+        if (!currentXmlDoc) return
+        treeOutput.innerHTML = '' // Clear previous tree
+        try {
+          const rootElement = currentXmlDoc.documentElement
+          if (rootElement) {
+            const treeRootUl = document.createElement('ul')
+            buildTreeNode(rootElement, treeRootUl)
+            treeOutput.appendChild(treeRootUl)
+            treeRendered = true
+            // Add event listener for toggling (delegate from container)
+            treeOutput.removeEventListener('click', handleTreeToggle) // Prevent duplicates
+            treeOutput.addEventListener('click', handleTreeToggle)
+          } else {
+            treeOutput.textContent =
+              'XML document appears to be empty or invalid.'
+            treeRendered = false
+          }
+        } catch (e) {
+          console.error('Error building tree view:', e)
+          treeOutput.textContent = 'Error building tree view.'
+          treeRendered = false
+        }
+      }
+
+      function buildTreeNode(element, parentUl) {
+        const li = document.createElement('li')
+        const nodeContentSpan = document.createElement('span')
+        nodeContentSpan.className = 'node-content'
+
+        const toggleSpan = document.createElement('span')
+        toggleSpan.className = 'toggle'
+        li.appendChild(toggleSpan)
+
+        // Element Name
+        const nameSpan = document.createElement('span')
+        nameSpan.className = 'element-name'
+        nameSpan.textContent = `<${element.nodeName}`
+        nodeContentSpan.appendChild(nameSpan)
+
+        // Attributes
+        if (element.attributes && element.attributes.length > 0) {
+          const attrsSpan = document.createElement('span')
+          attrsSpan.className = 'attributes'
+          for (let i = 0; i < element.attributes.length; i++) {
+            const attr = element.attributes[i]
+            const attrNameSpan = document.createElement('span')
+            attrNameSpan.className = 'attribute-name'
+            attrNameSpan.textContent = ` ${attr.name}`
+            attrsSpan.appendChild(attrNameSpan)
+
+            const attrEqSpan = document.createElement('span')
+            attrEqSpan.textContent = '='
+            attrsSpan.appendChild(attrEqSpan)
+
+            const attrValSpan = document.createElement('span')
+            attrValSpan.className = 'attribute-value'
+            attrValSpan.textContent = `"${attr.value}"`
+            attrsSpan.appendChild(attrValSpan)
+          }
+          nodeContentSpan.appendChild(attrsSpan)
+        }
+
+        const closingBracket = document.createElement('span')
+        closingBracket.className = 'element-name'
+        closingBracket.textContent = '>'
+        nodeContentSpan.appendChild(closingBracket)
+
+        li.appendChild(nodeContentSpan)
+
+        // Children (Elements and Text)
+        let hasChildElements = false
+        const childUl = document.createElement('ul')
+        childUl.classList.add('collapsed') // Start collapsed
+
+        if (element.childNodes && element.childNodes.length > 0) {
+          element.childNodes.forEach((child) => {
+            if (child.nodeType === Node.ELEMENT_NODE) {
+              buildTreeNode(child, childUl) // Recurse for child elements
+              hasChildElements = true
+            } else if (child.nodeType === Node.TEXT_NODE) {
+              const text = child.nodeValue.trim()
+              if (text) {
+                // Only display non-empty text nodes
+                const textLi = document.createElement('li')
+                textLi.classList.add('leaf') // No toggle for text
+                const textToggleSpan = document.createElement('span') // Placeholder toggle
+                textToggleSpan.className = 'toggle'
+                textLi.appendChild(textToggleSpan)
+                const textSpan = document.createElement('span')
+                textSpan.className = 'text-content'
+                textSpan.textContent = text
+                textLi.appendChild(textSpan)
+                childUl.appendChild(textLi)
+                hasChildElements = true // Treat text as content making parent expandable
+              }
+            }
+            // Add handling for CDATA, comments if needed
+          })
+        }
+
+        if (hasChildElements) {
+          li.appendChild(childUl)
+          li.classList.add('expandable') // Mark as having children
+        } else {
+          li.classList.add('leaf') // Mark as leaf node
+        }
+
+        // Closing Tag (only if it had children or text)
+        if (hasChildElements) {
+          const closingTagSpan = document.createElement('span')
+          closingTagSpan.className = 'element-name'
+          closingTagSpan.textContent = `</${element.nodeName}>`
+          li.appendChild(closingTagSpan)
+        } else {
+          // Self-closing style for leaf nodes (adjust opening bracket)
+          closingBracket.textContent = ' />'
+        }
+
+        parentUl.appendChild(li)
+      }
+
+      function handleTreeToggle(event) {
+        const toggle = event.target.closest('.toggle')
+        if (toggle) {
+          const li = toggle.closest('li')
+          if (li && li.classList.contains('expandable')) {
+            li.classList.toggle('expanded')
+            const childUl = li.querySelector(':scope > ul')
+            if (childUl) {
+              childUl.classList.toggle('collapsed')
+            }
+          }
+        }
+      }
+
+      // *** UPDATED renderTableView ***
+      function renderTableView() {
+        if (!currentXmlDoc) return
+        tableOutput.innerHTML = '' // Clear previous table (keeps CSV container template)
+        csvDownloadContainer.classList.add('hidden') // Ensure CSV button is hidden initially
+        tableRendered = false // Assume failure until success
+
+        try {
+          const rootElement = currentXmlDoc.documentElement
+          if (!rootElement || !rootElement.children.length) {
+            tableOutput.insertAdjacentHTML(
+              'afterbegin',
+              '<p class="no-table-data">No child elements found under the root to build a table.</p>'
+            )
+            return
+          }
+
+          // Step 1 & 2: Heuristic to find row elements (same as previous version)
+          const directChildNames = {}
+          let maxDirectCount = 0
+          let potentialContainerName = ''
+          for (let i = 0; i < rootElement.children.length; i++) {
+            const name = rootElement.children[i].nodeName
+            directChildNames[name] = (directChildNames[name] || 0) + 1
+            if (directChildNames[name] > maxDirectCount) {
+              maxDirectCount = directChildNames[name]
+              potentialContainerName = name
+            }
+          }
+
+          if (!potentialContainerName) {
+            tableOutput.insertAdjacentHTML(
+              'afterbegin',
+              '<p class="no-table-data">Could not determine repeating elements for table rows.</p>'
+            )
+            return
+          }
+
+          let rowElementName = potentialContainerName
+          let rowElements = Array.from(rootElement.children).filter(
+            (el) => el.nodeName === rowElementName
+          )
+
+          const firstPotentialContainer = rowElements[0]
+          if (
+            firstPotentialContainer &&
+            firstPotentialContainer.children.length > 0
+          ) {
+            const nestedChildNames = {}
+            let maxNestedCount = 0
+            let potentialNestedRowName = ''
+            let allChildrenAreElements = true
+            for (let i = 0; i < firstPotentialContainer.children.length; i++) {
+              const child = firstPotentialContainer.children[i]
+              if (child.nodeType !== Node.ELEMENT_NODE) {
+                allChildrenAreElements = false
+                break
+              }
+              const name = child.nodeName
+              nestedChildNames[name] = (nestedChildNames[name] || 0) + 1
+              if (nestedChildNames[name] > maxNestedCount) {
+                maxNestedCount = nestedChildNames[name]
+                potentialNestedRowName = name
+              }
+            }
+
+            if (
+              allChildrenAreElements &&
+              potentialNestedRowName &&
+              potentialNestedRowName !== rowElementName &&
+              maxNestedCount / firstPotentialContainer.children.length > 0.8
+            ) {
+              console.log(
+                `Table heuristic: Identified '${potentialContainerName}' as container, using nested '${potentialNestedRowName}' as rows.`
+              )
+              rowElementName = potentialNestedRowName
+              rowElements = rootElement.querySelectorAll(
+                `:scope > ${potentialContainerName} > ${rowElementName}`
+              )
+            } else {
+              console.log(
+                `Table heuristic: Using direct child '${rowElementName}' as rows.`
+              )
+            }
+          } else {
+            console.log(
+              `Table heuristic: Using direct child '${rowElementName}' as rows (container empty or no children).`
+            )
+          }
+
+          if (!rowElements || rowElements.length === 0) {
+            tableOutput.insertAdjacentHTML(
+              'afterbegin',
+              `<p class="no-table-data">No elements found matching the determined row name: '${rowElementName}'.</p>`
+            )
+            return
+          }
+
+          // Step 3: Determine Headers
+          const headers = new Set()
+          const firstRow = rowElements[0]
+          if (firstRow.attributes) {
+            for (let i = 0; i < firstRow.attributes.length; i++) {
+              headers.add(`@${firstRow.attributes[i].name}`)
+            }
+          }
+          if (firstRow.children) {
+            for (let i = 0; i < firstRow.children.length; i++) {
+              const childElement = firstRow.children[i]
+              // *** Allow adding headers even if they repeat (handled later) ***
+              if (
+                !childElement.querySelector(':scope > *') &&
+                childElement.textContent.trim()
+              ) {
+                headers.add(childElement.nodeName)
+              }
+            }
+          }
+          if (!firstRow.children.length && firstRow.textContent.trim()) {
+            headers.add('(Self)')
+          }
+
+          if (headers.size === 0) {
+            tableOutput.insertAdjacentHTML(
+              'afterbegin',
+              `<p class="no-table-data">Could not determine any columns for the table based on the children/attributes of the first '${rowElementName}' element.</p>`
+            )
+            return
+          }
+
+          const headerArray = Array.from(headers)
+
+          // Step 4: Build Table
+          const table = document.createElement('table')
+          const thead = table.createTHead()
+          const headerRow = thead.insertRow()
+          headerArray.forEach((headerText) => {
+            const th = document.createElement('th')
+            th.textContent = headerText
+            headerRow.appendChild(th)
+          })
+
+          const tbody = table.createTBody()
+          rowElements.forEach((rowElement) => {
+            const bodyRow = tbody.insertRow()
+            headerArray.forEach((header) => {
+              const td = bodyRow.insertCell()
+              let cellValue = ''
+              if (header.startsWith('@')) {
+                const attrName = header.substring(1)
+                cellValue = rowElement.getAttribute(attrName) || ''
+              } else if (header === '(Self)') {
+                cellValue = rowElement.textContent.trim()
+              } else {
+                // *** MODIFIED: Handle multiple children with the same name ***
+                const children = Array.from(rowElement.children).filter(
+                  (c) => c.nodeName === header
+                )
+                if (children.length > 0) {
+                  // Join the text content of all matching children
+                  cellValue = children
+                    .map((c) => c.textContent.trim())
+                    .join(', ')
+                }
+              }
+              td.textContent = cellValue
+            })
+          })
+
+          // Prepend table to tableOutput so CSV button remains at bottom
+          tableOutput.prepend(table)
+          tableRendered = true
+          // *** ADDED Show CSV button on success ***
+          csvDownloadContainer.classList.remove('hidden')
+        } catch (e) {
+          console.error('Error building table view:', e)
+          tableOutput.insertAdjacentHTML(
+            'afterbegin',
+            '<p class="no-table-data">An error occurred while building the table view.</p>'
+          )
+          tableRendered = false
+        }
+      }
+
+      // --- Search Functionality ---
+
+      // *** UPDATED performSearch to include scrolling ***
+      function performSearch() {
+        const searchTerm = searchInput.value.trim().toLowerCase()
+        clearHighlights() // Clear previous highlights first
+
+        if (!searchTerm || !currentXmlDoc) {
+          searchResultCount.textContent = ''
+          return
+        }
+
+        let count = 0
+        let viewElement = document.getElementById(currentView) // Get current view pane
+
+        if (!viewElement) {
+          searchResultCount.textContent = ''
+          return // Should not happen, but safety check
+        }
+
+        if (currentView === 'treeOutput' && treeRendered) {
+          count = searchInElement(viewElement, searchTerm)
+        } else if (currentView === 'tableOutput' && tableRendered) {
+          // Search only the table part, not the download button container
+          const table = viewElement.querySelector('table')
+          if (table) count = searchInElement(table, searchTerm)
+        } else if (currentView === 'rawOutput' && rawXmlRendered) {
+          count = searchInRawText(viewElement, searchTerm)
+        }
+
+        searchResultCount.textContent = `${count} match(es)`
+
+        // *** ADDED Scroll to first match ***
+        if (count > 0) {
+          const firstMark = viewElement.querySelector('mark')
+          if (firstMark) {
+            try {
+              // Use block: 'center' to try and center it vertically
+              firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            } catch (e) {
+              // Fallback for older browsers or if centering fails
+              firstMark.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+              console.warn(
+                "scrollIntoView with 'center' failed, using 'nearest'.",
+                e
+              )
+            }
+          }
+        }
+      }
+
+      function searchInElement(element, searchTerm) {
+        let count = 0
+        const walker = document.createTreeWalker(
+          element,
+          NodeFilter.SHOW_TEXT,
+          null,
+          false
+        )
+        let node
+        const nodesToWrap = []
+
+        while ((node = walker.nextNode())) {
+          // Ignore text nodes within script/style tags or the CSV button
+          if (
+            node.parentElement &&
+            node.parentElement.closest('script, style, #csvDownloadContainer')
+          ) {
+            continue
+          }
+
+          const text = node.nodeValue.toLowerCase()
+          let startIndex = text.indexOf(searchTerm)
+          if (startIndex !== -1) {
+            // Store nodes and indices to modify later to avoid issues with walker
+            let currentIndex = 0
+            while (startIndex !== -1) {
+              count++
+              nodesToWrap.push({
+                node: node,
+                start: startIndex + currentIndex,
+                length: searchTerm.length,
+              })
+              currentIndex += startIndex + searchTerm.length
+              const remainingText = node.nodeValue
+                .substring(currentIndex)
+                .toLowerCase()
+              startIndex = remainingText.indexOf(searchTerm)
+            }
+          }
+        }
+
+        // Apply highlighting by wrapping matches
+        // Process in reverse order to avoid index issues after splitting nodes
+        nodesToWrap.reverse().forEach((item) => {
+          const { node, start, length } = item
+          // Double check node validity before modifying
+          if (node.parentElement && node.nodeValue.length >= start + length) {
+            const matchText = node.nodeValue.substring(start, start + length)
+            const mark = document.createElement('mark')
+            mark.textContent = matchText
+
+            try {
+              const after = node.splitText(start + length) // Split after match
+              const middle = node.splitText(start) // Split before match (node now contains text before match)
+              node.parentNode.replaceChild(mark, middle) // Replace middle part (original match text) with mark
+            } catch (e) {
+              console.error(
+                'Error splitting text node during highlight:',
+                e,
+                node,
+                start,
+                length
+              )
+              // Avoid breaking search if one node fails
+            }
+          }
+        })
+
+        return count // Return the total count
+      }
+
+      function searchInRawText(element, searchTerm) {
+        // This is basic. It won't handle XML structure well.
+        let count = 0
+        const originalContent = element.textContent // Work with text content
+        const regex = new RegExp(escapeRegExp(searchTerm), 'gi') // Global, case-insensitive
+        let match
+        const matches = []
+
+        while ((match = regex.exec(originalContent)) !== null) {
+          count++
+          matches.push({ index: match.index, length: match[0].length })
+        }
+
+        if (count > 0) {
+          let highlightedContent = ''
+          let lastIndex = 0
+          matches.forEach((m) => {
+            highlightedContent += escapeHtml(
+              originalContent.substring(lastIndex, m.index)
+            )
+            highlightedContent += `<mark>${escapeHtml(
+              originalContent.substring(m.index, m.index + m.length)
+            )}</mark>`
+            lastIndex = m.index + m.length
+          })
+          highlightedContent += escapeHtml(originalContent.substring(lastIndex))
+          element.innerHTML = highlightedContent // Replace content with highlighted version
+        } else {
+          // Restore original if no matches (or if search term cleared)
+          // Check if it actually contains marks before restoring
+          if (element.querySelector('mark')) {
+            element.textContent = originalContent
+          }
+        }
+        return count
+      }
+
+      function clearHighlights() {
+        const views = [rawOutput, treeOutput, tableOutput]
+        views.forEach((view) => {
+          const marks = view.querySelectorAll('mark')
+          marks.forEach((mark) => {
+            const parent = mark.parentNode
+            if (parent) {
+              // Replace mark with its text content
+              parent.replaceChild(
+                document.createTextNode(mark.textContent),
+                mark
+              )
+              // Normalize adjacent text nodes (optional but good practice)
+              parent.normalize()
+            }
+          })
+        })
+        // If raw view was highlighted using innerHTML, restore its textContent
+        if (rawXmlRendered && rawOutput.querySelector('mark')) {
+          // Re-render raw text to be safe and ensure consistency
+          renderRawXml()
+        }
+      }
+
+      function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
+      }
+      function escapeHtml(unsafe) {
+        // Basic escaping, sufficient for putting text into HTML
+        return unsafe
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;')
+      }
+
+      // *** ADDED CSV Escaping and Download Function ***
+      function escapeCsvCell(cellData) {
+        if (cellData == null) {
+          // Check for null or undefined
+          return ''
+        }
+        const stringData = String(cellData)
+        // If the cell contains a comma, newline, or double quote, wrap it in double quotes
+        if (
+          stringData.includes(',') ||
+          stringData.includes('\n') ||
+          stringData.includes('"')
+        ) {
+          // Escape existing double quotes by doubling them
+          const escapedData = stringData.replace(/"/g, '""')
+          return `"${escapedData}"`
+        }
+        return stringData // No escaping needed
+      }
+
+      function downloadTableAsCsv() {
+        const table = tableOutput.querySelector('table')
+        if (!table) {
+          alert('No table data available to download.')
+          return
+        }
+
+        let csv = []
+        const headers = []
+        // Get headers
+        table.querySelectorAll('thead th').forEach((th) => {
+          headers.push(escapeCsvCell(th.textContent))
+        })
+        csv.push(headers.join(','))
+
+        // Get rows
+        table.querySelectorAll('tbody tr').forEach((row) => {
+          const rowData = []
+          row.querySelectorAll('td').forEach((td) => {
+            rowData.push(escapeCsvCell(td.textContent))
+          })
+          csv.push(rowData.join(','))
+        })
+
+        const csvString = csv.join('\n')
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
+
+        // Create a link and trigger the download
+        const link = document.createElement('a')
+        if (link.download !== undefined) {
+          // Feature detection
+          const url = URL.createObjectURL(blob)
+          link.setAttribute('href', url)
+          link.setAttribute('download', 'xml_table_export.csv')
+          link.style.visibility = 'hidden'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url) // Clean up
+        } else {
+          alert('CSV download is not supported in your browser.')
+        }
+      }
+
+      // --- Formatting Function (Keep As Is) ---
+      function formatXml(xml) {
+        const PADDING = '  '
+        const reg = /(>)(<)(\/*)/g
+        let pad = 0
+        let formatted = ''
+        xml = xml.replace(/<\?xml.*\?>\r?\n?/, '')
+        xml = xml.replace(/<([^\/>]+)([\s\r\n\t]+)/g, '<$1 ')
+        xml = xml.replace(/>\s*</g, '><')
+        xml = xml.replace(reg, '$1\r\n$2$3')
+        xml = xml.replace(/([^>])(<\/\w+>)/g, '$1\r\n$2')
+        xml.split('\r\n').forEach((node) => {
+          let indent = 0
+          node = node.trim()
+          if (!node) return
+          if (node.match(/^<\/\w/)) {
+            if (pad > 0) pad -= 1
+          } else if (
+            node.match(/^<(\w+)([^>]*)>.*<\/\1>$/) ||
+            node.match(/^<.*\/>$/)
+          )
+            indent = 0
+          else if (node.match(/^<\w([^>]*[^\/])?>/)) indent = 1
+          else indent = 0
+          formatted += PADDING.repeat(pad) + node + '\r\n'
+          pad += indent
+        })
+        return formatted.trim()
+      }
     </script>
 
     <noscript>
-        <div style="text-align:center;color:red;font-weight:bold;">JavaScript is required to use the Private XML Viewer.</div>
+      <div style="text-align: center; color: red; font-weight: bold">
+        JavaScript is required to use the XML Product Viewer.
+      </div>
     </noscript>
-</body>
+  </body>
 </html>
